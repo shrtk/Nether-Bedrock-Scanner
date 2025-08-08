@@ -1,14 +1,14 @@
 package com.github.shrtk;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.command.CommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -23,18 +23,25 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class BedrockScanner implements ModInitializer {
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+
+public class BedrockScanner implements ClientModInitializer {
 	@Override
-	public void onInitialize() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("bedrockscan")
-					.executes(context -> executeScan(context.getSource())));
+	public void onInitializeClient() {
+		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+			dispatcher.register(LiteralArgumentBuilder.<FabricClientCommandSource>literal("bedrockscan")
+					.executes(context -> {
+						scanAndSave();
+						return 1;
+					}));
 		});
 	}
 
-	private int executeScan(ServerCommandSource source) {
-		ServerPlayerEntity player = source.getPlayer();
-		MinecraftServer server = source.getServer();
+	private void scanAndSave() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		ClientPlayerEntity player = client.player;
+		if (player == null) return;
+
 		World world = player.getWorld();
 		BlockPos playerPos = player.getBlockPos();
 		ChunkPos centerChunk = new ChunkPos(playerPos);
@@ -61,15 +68,18 @@ public class BedrockScanner implements ModInitializer {
 			}
 		}
 
-		saveToDownloads(resultLines, server, player);
-		return Command.SINGLE_SUCCESS;
+		saveToDownloads(resultLines);
 	}
 
-	private void saveToDownloads(List<String> lines, MinecraftServer server, ServerPlayerEntity player) {
+	private void saveToDownloads(List<String> lines) {
+		MinecraftClient client = MinecraftClient.getInstance();
+		ClientPlayerEntity player = client.player;
+		if (player == null) return;
+
 		try {
 			File downloadsFolder = getDownloadsFolder();
 			String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-			File outFile = new File(downloadsFolder, "bedrockscan_" + timestamp);
+			File outFile = new File(downloadsFolder, "bedrockscan_" + timestamp + ".txt");
 
 			Files.write(outFile.toPath(), lines, StandardCharsets.UTF_8);
 
