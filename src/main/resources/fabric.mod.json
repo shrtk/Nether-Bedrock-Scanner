@@ -3,9 +3,9 @@
 	"id": "bedrockscanner",
 	"version": "${version}",
 	"name": "Bedrock Scanner",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "/bedrockscan",
 	"authors": [
-		"Me!"
+		"shrtk"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -23,8 +23,8 @@
 		"bedrockscanner.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.8",
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.9",
 		"java": ">=21",
 		"fabric-api": "*"
 	},

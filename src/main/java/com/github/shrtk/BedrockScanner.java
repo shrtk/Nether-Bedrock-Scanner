@@ -1,5 +1,6 @@
 package com.github.shrtk;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -8,7 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.command.CommandSource;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -23,12 +24,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
 public class BedrockScanner implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+		ClientCommandRegistrationCallback.EVENT.register((CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess registryAccess) -> {
 			dispatcher.register(LiteralArgumentBuilder.<FabricClientCommandSource>literal("bedrockscan")
 					.executes(context -> {
 						scanAndSave();
@@ -42,7 +42,7 @@ public class BedrockScanner implements ClientModInitializer {
 		ClientPlayerEntity player = client.player;
 		if (player == null) return;
 
-		World world = player.getWorld();
+		World world = player.getEntityWorld();
 		BlockPos playerPos = player.getBlockPos();
 		ChunkPos centerChunk = new ChunkPos(playerPos);
 
